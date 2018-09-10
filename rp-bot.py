@@ -1,7 +1,8 @@
 import discord
 from discord.ext import commands
-from discord import Webhook, RequestsWebhookAdapter
+from discord import Webhook, RequestsWebhookAdapter, File
 import aiohttp
+from config import token
 
 bot = commands.Bot(command_prefix='#@')
 print(bot)
@@ -26,7 +27,7 @@ async def on_ready():
             channels[i[1]] = i[2]
         else:
             tags.append(i[0])
-            outlines[i[0] ] = [i[1], i[2]]
+            outlines[i[0] ] = [i[1], i[2][:-1]]
             #file processing end
             print('logged in as')
             print(bot.user.name)
@@ -35,30 +36,34 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    print('message received')
+    Bot = message.author.bot
     await bot.process_commands(message)
-    if bot == False and channels[message.channel.name] != None:
+    print(channels[message.channel.name])
+    if Bot == False and channels[message.channel.name] != None:
         webhook = channels[message.channel.name]
-        print(outlines)
+        print('first check')
         for i in outlines:
             for y in message.author.roles:
                 if i == y.name and outlines[i][0] in message.content and outlines[i][1]:
+                    print('success')
                     text = message.content.split(outlines[i][0])
                     text = text[1].split(outlines[i][1])
                     print(text)
-                    message = text[0]
+                    Message = text[0]
                     name = i
-                    await webhook.send(message, username=name)
+                    await webhook.send(Message, username=name)
+                    await message.delete()
 
 #commands
 @bot.command()
-async def setup(ctx, webhook_url):
+async def setup(ctx):
     await ctx.send('wtf blyat')
     print('wtf blyat')
-    channelName = ctx.message.channel.name
-    async with aiohttp.ClientSession() as session:
-        channels[channelName] = Webhook.from_url(webhook_url, adapter=RequestsWebhookAdapter(session))
-    print('webhook: ', channels[channelName])
+    channel = ctx.message.channel
+    webhook = await channel.create_webhook(name=channel.name)
+    channels[channel.name] = webhook
+
+
 
 @bot.command(description='use this command to make your own character, usage: addchar [character name] [beginning of character text] [end of character text]')
 async def addChar(ctx, tag, start, end):
@@ -87,7 +92,7 @@ async def editName(ctx, char, newName):
         old = outlines.pop(char)
         outlines[newName] = old
     else:
-        await webhook.send('you do not have permission to change me!',char)
+        await webhook.send('you do not have permission to change me!',username=char)
 
 @bot.command()
 async def ping(ctx):
