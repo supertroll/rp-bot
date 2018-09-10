@@ -41,14 +41,11 @@ async def on_message(message):
     print(channels[message.channel.name])
     if Bot == False and channels[message.channel.name] != None:
         webhook = channels[message.channel.name]
-        print('first check')
         for i in outlines:
             for y in message.author.roles:
                 if i == y.name and outlines[i][0] in message.content and outlines[i][1]:
-                    print('success')
                     text = message.content.split(outlines[i][0])
                     text = text[1].split(outlines[i][1])
-                    print(text)
                     Message = text[0]
                     name = i
                     await webhook.send(Message, username=name)
@@ -57,8 +54,6 @@ async def on_message(message):
 #commands
 @bot.command()
 async def setup(ctx):
-    await ctx.send('wtf blyat')
-    print('wtf blyat')
     channel = ctx.message.channel
     webhook = await channel.create_webhook(name=channel.name)
     channels[channel.name] = webhook
@@ -94,10 +89,4 @@ async def editName(ctx, char, newName):
     else:
         await webhook.send('you do not have permission to change me!',username=char)
 
-@bot.command()
-async def ping(ctx):
-    print('hello there!')
-    await ctx.send('wut?')
-
 bot.run(token)
-
