@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from discord import Webhook, RequestsWebhookAdapter, File
+from discord import Webhook
 import aiohttp
 from config import token
 
@@ -72,8 +72,13 @@ async def on_message(message):
 async def setup(ctx):
     channel = ctx.message.channel
     webhook = await channel.create_webhook(name=channel.name)
-    servers[ctx.guild][channel] = webhook
-
+    try:
+        servers[ctx.guild.name][channel] = webhook
+    except:
+       servers[ctx.guild.name] = {}
+       servers[ctx.guild.name][channel.name] = webhook
+       outlines[ctx.guild.name] = {}
+       print(servers[ctx.guild.name])
 
 
 @bot.command(description='use this command to make your own character, usage: addchar [character name] [beginning of character text] [end of character text]')
@@ -82,7 +87,7 @@ async def addChar(ctx, tag, start, end):
     user = ctx.message.author
     new_role = await guild.create_role(name=tag,mentionable=True)
     await user.add_roles(new_role)
-    outlines[server][tag] = [start, end]
+    outlines[guild.name][tag] = [start, end]
 
 
 @bot.command(description= 'edit a charcters name, you can only do this if you have the role for it! usage: editName [current char name] [new character name]')
@@ -100,7 +105,7 @@ async def editName(ctx, char, newName):
         await user.add_roles(new_role)
 
         #update the dictionary
-        old = outlines.pop(char)
+        old = outlines[guild].pop(char)
         outlines[guild][new_char] = old
     else:
         await webhook.send('you do not have permission to change me!',username=char)
